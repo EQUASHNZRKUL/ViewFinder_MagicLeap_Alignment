@@ -410,29 +410,49 @@ namespace MagicLeap
         {
             Debug.LogFormat("395 - {0} x {1}", texture.width, texture.height);
             // Convert Texture to Mat and store as cached_initMat
-            cached_bigMat = new Mat(1080, 1920, CvType.CV_8UC1);
+            cached_bigMat = new Mat(1080, 2048, CvType.CV_8UC1);
             cached_initMat = new Mat(360, 640, CvType.CV_8UC1); 
+
+            if (out_texture == null) {
+                out_texture = new Texture2D(2048, 1080, TextureFormat.RGBA32, false);
+            }
             
-            Debug.Log("400 - Mats found");
-            Utils.texture2DToMat(texture, cached_bigMat, false, 0);
-            Debug.LogFormat("Texture Dimensions: {0} -- {1} x {2}", cached_bigMat.size(), texture.width, texture.height);
-            Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
+            // Debug.LogFormat("outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
 
-            Debug.Log("404 - resized Mats");
-            out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
+            Utils.matToTexture2D(outMat, out_texture, false, 0);
 
-            // Finds existing screen points
-            Debug.Log("Finding existing screen points");
-            SetC2ScreenPoints();
-            DrawC2ScreenPoints(ref cached_initMat);
+            if(_previewObject != null)
+            {
+                _previewObject.SetActive(true);
+                Renderer renderer = _previewObject.GetComponent<Renderer>();
+                if(renderer != null)
+                {
+                    renderer.material.mainTexture = out_texture;
+                }
+                // _previewObject.transform.localScale = _previewObject.transform.localScale * 4;
+                // _previewObject.transform.localScale = new Vector3(1.2f, 0.8f, 1);
+            }
+            
+            // Debug.Log("400 - Mats found");
+            // Utils.texture2DToMat(texture, cached_bigMat, false, 0);
+            // Debug.LogFormat("Texture Dimensions: {0} -- {1} x {2}", cached_bigMat.size(), texture.width, texture.height);
+            // Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
 
-            Debug.Log("Getting Faces");
-            GetFaces(ref c2_point_array);
-            ShowFaces();
+            // Debug.Log("404 - resized Mats");
+            // out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
 
-            Debug.Log("Showing Mat");
-            outMat = cached_initMat;
-            // ShowMat(ref outMat);
+            // // Finds existing screen points
+            // Debug.Log("Finding existing screen points");
+            // SetC2ScreenPoints();
+            // DrawC2ScreenPoints(ref cached_initMat);
+
+            // Debug.Log("Getting Faces");
+            // GetFaces(ref c2_point_array);
+            // ShowFaces();
+
+            // Debug.Log("Showing Mat");
+            // outMat = cached_initMat;
+            // // ShowMat(ref outMat);
         }
 
         public void OnFrameCaptured(MLCameraResultExtras extras, YUVFrameInfo frameData, MLCameraFrameMetadata frameMetadata) {
@@ -456,9 +476,9 @@ namespace MagicLeap
             // }
 
             // OPTIONAL: Show texture here
-            Debug.LogFormat("Showing Textures:"); 
-            _screenRenderer.material.mainTexture = texture; 
-            _screenRenderer.material.mainTextureScale = new Vector2(yData.Width / (float)yData.Stride, -1.0f);
+            // Debug.LogFormat("Showing Textures:"); 
+            // _screenRenderer.material.mainTexture = texture; 
+            // _screenRenderer.material.mainTextureScale = new Vector2(yData.Width / (float)yData.Stride, -1.0f);
         }
 
             // Debug.LogFormat("Entered OFC");
