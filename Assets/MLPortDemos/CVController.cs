@@ -265,7 +265,7 @@ namespace MagicLeap
                 out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
             }
             
-            // Debug.LogFormat("outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
+            Debug.LogFormat("ShowMat Debug Info: \n outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
 
             Utils.matToTexture2D(outMat, out_texture, false, 0);
 
@@ -379,25 +379,25 @@ namespace MagicLeap
 
         void Update() 
         {
-            // Checks have valid number of points
-            if (cached_initMat == null)
-                return; 
+            // // Checks have valid number of points
+            // if (cached_initMat == null)
+            //     return; 
 
-            // Takes world points and extracts c2 screen points (and displays them)
-            if (world_idx >= POINT_COUNT) {
-                SetControllerScreenPoints();
-                DrawC2ScreenPoints(ref cached_initMat);
-            }
+            // // Takes world points and extracts c2 screen points (and displays them)
+            // if (world_idx >= POINT_COUNT) {
+            //     SetControllerScreenPoints();
+            //     DrawC2ScreenPoints(ref cached_initMat);
+            // }
 
-            // STAGE III
-            for (int i = 0; i < FACE_COUNT; i++) {
-                if (faceX_full[i])
-                    HomographyTransform(i, ref hand_point_array);
-            }
-            CombineWarped();
+            // // STAGE III
+            // for (int i = 0; i < FACE_COUNT; i++) {
+            //     if (faceX_full[i])
+            //         HomographyTransform(i, ref hand_point_array);
+            // }
+            // CombineWarped();
 
-            // Output cached_initMat
-            ShowMat(ref warpedMat);
+            // // Output cached_initMat
+            // ShowMat(ref warpedMat);
         }
         #endregion
 
@@ -413,32 +413,19 @@ namespace MagicLeap
             cached_bigMat = new Mat(1080, 2048, CvType.CV_8UC1);
             cached_initMat = new Mat(360, 640, CvType.CV_8UC1); 
 
-            if (out_texture == null) {
-                out_texture = new Texture2D(2048, 1080, TextureFormat.RGBA32, false);
-            }
+            Debug.Log("400 - Converting to Mat");
+            Utils.texture2DToMat(texture, cached_bigMat, true, 0);
+            Debug.LogFormat("Texture Dimensions: {0} -- {1} x {2}", 
+                cached_bigMat.size(), texture.width, texture.height);
+
+            Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 
+                1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
+                // 640.0/2048.0, 360.0/1080.0, 1); 
             
-            // Debug.LogFormat("outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
+            Debug.LogFormat("404 - resized Mats -- Matsize : {0} x {1}", 
+                cached_initMat.width(), cached_initMat.height());
+            ShowMat(ref cached_initMat); 
 
-            Utils.matToTexture2D(outMat, out_texture, false, 0);
-
-            if(_previewObject != null)
-            {
-                _previewObject.SetActive(true);
-                Renderer renderer = _previewObject.GetComponent<Renderer>();
-                if(renderer != null)
-                {
-                    renderer.material.mainTexture = out_texture;
-                }
-                // _previewObject.transform.localScale = _previewObject.transform.localScale * 4;
-                // _previewObject.transform.localScale = new Vector3(1.2f, 0.8f, 1);
-            }
-            
-            // Debug.Log("400 - Mats found");
-            // Utils.texture2DToMat(texture, cached_bigMat, false, 0);
-            // Debug.LogFormat("Texture Dimensions: {0} -- {1} x {2}", cached_bigMat.size(), texture.width, texture.height);
-            // Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
-
-            // Debug.Log("404 - resized Mats");
             // out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
 
             // // Finds existing screen points
@@ -468,6 +455,8 @@ namespace MagicLeap
             ProcessImage(yData.Data, 4); 
             texture.LoadRawTextureData(imageData); 
             texture.Apply(); 
+
+            OnImageCaptured(texture);
 
             // if ((texture.width != 8 && texture.height != 8))
             // {
