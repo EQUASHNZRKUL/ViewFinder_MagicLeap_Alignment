@@ -151,8 +151,10 @@ namespace MagicLeap
             }
         }
 
-        static void MatrixToTransform(Matrix4x4 m, ref Transform t)
+        static void MatrixToTransform(Matrix4x4 m, Camera c)
         {
+            Transform t = c.transform; 
+
             // T Section
             Vector3 position; 
             position.x = m.m03;
@@ -244,25 +246,21 @@ namespace MagicLeap
 
             device_camera.CopyFrom(_camera);
 
-            Vector3 offset_vector = new Vector3(X_OFFSET, 0f, 0f);
-            offset_vector = Vector3.Cross(_camera.transform.forward, _camera.transform.up) * -X_OFFSET;
+            MatrixToTransform(camera_pose, device_camera);
 
-            device_camera.transform.position = device_camera.transform.position + offset_vector;
-            // device_camera.transform.localScale = device_camera.transform.localScale * 5; 
-            // Debug.LogFormat("main Camera Position: {0} \n device Camera Position: {1} \n Offset: {2}", _camera.transform.position, device_camera.transform.position, offset_vector);
+            Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
 
-            // Debug.LogFormat("World to Camera Matrix: {0}", _camera.cameraToWorldMatrix);
+            // device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
 
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = 
-                    device_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
-                    // device_camera.WorldToScreenPoint(world_pos);
+                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(world_pos);
 
-                // Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", c2_vector3.x + 300, c2_vector3.y, c2_vector3.x/3 + 100, c2_vector3.y/3);
+                Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
+                    c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
 
-                c2_point_array[i] = new Point((c2_vector3.x + 300) /SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
+                c2_point_array[i] = new Point((c2_vector3.x)/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
             }
         }
 
@@ -297,7 +295,7 @@ namespace MagicLeap
                 out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
             }
             
-            Debug.LogFormat("ShowMat Debug Info: \n outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
+            // Debug.LogFormat("ShowMat Debug Info: \n outMat size: {0} \n out_texture size: {1} x {2}", outMat.size(), out_texture.width, out_texture.height);
 
             Utils.matToTexture2D(outMat, out_texture, false, 0);
 
@@ -429,7 +427,7 @@ namespace MagicLeap
             CombineWarped();
 
             // Output cached_initMat
-            ShowMat(ref warpedMat);
+            // ShowMat(ref warpedMat);
         }
         #endregion
 
@@ -466,8 +464,8 @@ namespace MagicLeap
             ShowFaces();
 
             // Debug.Log("Showing Mat");
-            // outMat = cached_initMat;
-            // // ShowMat(ref outMat);
+            outMat = cached_initMat;
+            ShowMat(ref outMat);
         }
 
         public void OnFrameCaptured(MLCameraResultExtras extras, YUVFrameInfo frameData, MLCameraFrameMetadata frameMetadata) {
@@ -480,7 +478,7 @@ namespace MagicLeap
             texture.filterMode = FilterMode.Point; 
             Debug.LogFormat("Created Texture from imageData: {0}x{1}", yData.Stride, yData.Height); 
 
-            ProcessImage(yData.Data, 4); 
+            // ProcessImage(yData.Data, 4); 
             texture.LoadRawTextureData(imageData); 
             texture.Apply(); 
 
