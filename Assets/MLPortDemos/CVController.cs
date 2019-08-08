@@ -428,14 +428,14 @@ namespace MagicLeap
 
             // out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
 
-            // // Finds existing screen points
-            // Debug.Log("Finding existing screen points");
-            // SetC2ScreenPoints();
-            // DrawC2ScreenPoints(ref cached_initMat);
+            // Finds existing screen points
+            Debug.Log("Finding existing screen points");
+            SetC2ScreenPoints();
+            DrawC2ScreenPoints(ref cached_initMat);
 
-            // Debug.Log("Getting Faces");
-            // GetFaces(ref c2_point_array);
-            // ShowFaces();
+            Debug.Log("Getting Faces");
+            GetFaces(ref c2_point_array);
+            ShowFaces();
 
             // Debug.Log("Showing Mat");
             // outMat = cached_initMat;
