@@ -246,16 +246,18 @@ namespace MagicLeap
 
             device_camera.CopyFrom(_camera);
 
-            MatrixToTransform(camera_pose, device_camera);
+            // MatrixToTransform(camera_pose, device_camera);
 
-            Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
+            // Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
 
-            // device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
+            Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1}", camera_pose, device_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left));
+
+            device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
 
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(world_pos);
+                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
 
                 Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
                     c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
