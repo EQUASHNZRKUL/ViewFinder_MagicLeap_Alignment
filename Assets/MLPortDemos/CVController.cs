@@ -250,6 +250,9 @@ namespace MagicLeap
 
             // Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
 
+            MLCVCameraIntrinsicCalibrationParameters intrinsicParam; 
+            MLCamera.GetIntrinsicCalibrationParameters(out intrinsicParam); 
+
             Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1}", camera_pose, device_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left));
 
             device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
