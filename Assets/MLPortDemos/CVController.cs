@@ -379,25 +379,25 @@ namespace MagicLeap
 
         void Update() 
         {
-            // // Checks have valid number of points
-            // if (cached_initMat == null)
-            //     return; 
+            // Checks have valid number of points
+            if (cached_initMat == null)
+                return; 
 
-            // // Takes world points and extracts c2 screen points (and displays them)
-            // if (world_idx >= POINT_COUNT) {
-            //     SetControllerScreenPoints();
-            //     DrawC2ScreenPoints(ref cached_initMat);
-            // }
+            // Takes world points and extracts c2 screen points (and displays them)
+            if (world_idx >= POINT_COUNT) {
+                SetControllerScreenPoints();
+                DrawC2ScreenPoints(ref cached_initMat);
+            }
 
-            // // STAGE III
-            // for (int i = 0; i < FACE_COUNT; i++) {
-            //     if (faceX_full[i])
-            //         HomographyTransform(i, ref hand_point_array);
-            // }
-            // CombineWarped();
+            // STAGE III
+            for (int i = 0; i < FACE_COUNT; i++) {
+                if (faceX_full[i])
+                    HomographyTransform(i, ref hand_point_array);
+            }
+            CombineWarped();
 
-            // // Output cached_initMat
-            // ShowMat(ref warpedMat);
+            // Output cached_initMat
+            ShowMat(ref warpedMat);
         }
         #endregion
 

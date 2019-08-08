@@ -2,16 +2,16 @@
  "entries": [
   {
    "compression": 8,
-   "hash": "e7ec6c5f66c40215713794929d34da4a5d015cd7",
+   "hash": "4bcb8d92ddbce21e19801b64c380b8b6c5b8dc39",
    "pkgpath": "Data/Managed/Metadata/global-metadata.dat",
-   "size": 5111352,
+   "size": 5113812,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/Managed/Metadata/global-metadata.dat"
   },
   {
    "compression": 8,
-   "hash": "bc523516aa210a3633e9ce347427aa3e94eda671",
+   "hash": "5a73735c6e528c3b5fa94c38210e88e563ac55f6",
    "pkgpath": "bin/libil2cpp.so",
-   "size": 72778224,
+   "size": 72807456,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/Native/libil2cpp.so",
    "xfrm_flags": {
     "signed": {
@@ -23,9 +23,9 @@
      "version": 3
     }
    },
-   "xfrm_hash": "c1600689b398822b1239d200680b2f91860ea525",
+   "xfrm_hash": "9860289724d8754893995b0e341e3b521ca96be0",
    "xfrm_path": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/.out/.cache/debug_lumin_clang-3.8_aarch64/homographydemo-46c50434750286cd/libil2cpp.so-ad3b4792d1e84873",
-   "xfrm_size": 72778982
+   "xfrm_size": 72808214
   },
   {
    "compression": 8,
@@ -402,23 +402,23 @@
   },
   {
    "compression": 8,
-   "hash": "66f42d276d288ca6373451fa9eb5a343e8efdc82",
+   "hash": "7f2e203c05500552c3405501d37d1200aaed07a7",
    "pkgpath": "Data/globalgamemanagers",
-   "size": 77304,
+   "size": 77344,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/globalgamemanagers"
   },
   {
    "compression": 8,
-   "hash": "6e9117509ca566d802e08cd14a20b0150e5888ca",
+   "hash": "f1e1e628b935c1e2e037e6aadf70497f440b0b0f",
    "pkgpath": "Data/globalgamemanagers.assets",
-   "size": 136732,
+   "size": 136868,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/globalgamemanagers.assets"
   },
   {
    "compression": 8,
-   "hash": "ed49c8657bb14f5feed0ef34e710fd214d781ae3",
+   "hash": "ac7b91a55c55f1554528b417ae3fde0a94c8c760",
    "pkgpath": "Data/level0",
-   "size": 24844,
+   "size": 25332,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/level0"
   },
   {
@@ -430,7 +430,7 @@
   },
   {
    "compression": 8,
-   "hash": "624af103aaa1547318ca8ec5c05dc5833d3c5c16",
+   "hash": "46c3c5a7e98e7dd686477109c40b1048cd841c19",
    "pkgpath": "Data/resources.assets",
    "size": 7044272,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/resources.assets"
@@ -451,7 +451,7 @@
   },
   {
    "compression": 8,
-   "hash": "9ab0cc7010357c754069ae62aad32346873947b3",
+   "hash": "10fd4da4703200a04b89a148751e72242c861d3c",
    "pkgpath": "Data/sharedassets0.assets",
    "size": 1796688,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/sharedassets0.assets"
