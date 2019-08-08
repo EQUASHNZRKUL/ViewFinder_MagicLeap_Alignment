@@ -339,7 +339,7 @@ namespace MagicLeap
                 }
                 else
                 {
-                    
+                    OnRawVideoDataReceived?.Invoke(_cached_extras, _cached_frameData, _cached_frameMetadata);
                 }
             }
         }
@@ -358,7 +358,7 @@ namespace MagicLeap
             _framePoseTransform.position = matrix.MultiplyPoint(Vector3.zero);
             _framePoseTransform.rotation = matrix.rotation;
 
-            OnRawVideoDataReceived?.Invoke(extras, frameData, frameMetadata);
+            _cached_extras = extras; _cached_frameData = frameData; _cached_frameMetadata = frameMetadata; 
         }
 
         /// <summary>
