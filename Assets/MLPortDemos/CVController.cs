@@ -74,7 +74,7 @@ namespace MagicLeap
         private Mat[] rectMat_array = new Mat[3];
         private Mat[] homoMat_array = new Mat[3];
 
-        private Matrix4x4 m; 
+        private Matrix4x4 camera_pose; 
 
         // Face corner indices for each face
         private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
@@ -149,6 +149,38 @@ namespace MagicLeap
             {
                 data[i] = (byte) (data[i] / factor * factor);
             }
+        }
+
+        static void MatrixToTransform(Matrix4x4 m, ref Transform t)
+        {
+            // T Section
+            Vector3 position; 
+            position.x = m.m03;
+            position.y = m.m13;
+            position.z = m.m23; 
+
+            t.position = position; 
+
+            // R Section
+            Vector3 fwd; 
+            fwd.x = m.m02; 
+            fwd.y = m.m12; 
+            fwd.z = m.m22; 
+
+            Vector3 up; 
+            up.x = m.m01; 
+            up.y = m.m11;
+            up.z = m.m21; 
+
+            t.rotation = Quaternion.LookRotation(fwd, up); 
+
+            // S Section
+            Vector3 scale; 
+            scale.x = new Vector4(m.m00, m.m10, m.m20, m.m30).magnitude; 
+            scale.y = new Vector4(m.m01, m.m11, m.m21, m.m31).magnitude; 
+            scale.z = new Vector4(m.m02, m.m12, m.m22, m.m32).magnitude; 
+
+            t.localScale = scale; 
         }
         #endregion
 
@@ -426,14 +458,10 @@ namespace MagicLeap
                 cached_initMat.width(), cached_initMat.height());
             ShowMat(ref cached_initMat); 
 
-            // out_texture = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-
             // Finds existing screen points
-            Debug.Log("Finding existing screen points");
             SetC2ScreenPoints();
             DrawC2ScreenPoints(ref cached_initMat);
 
-            Debug.Log("Getting Faces");
             GetFaces(ref c2_point_array);
             ShowFaces();
 
@@ -456,65 +484,10 @@ namespace MagicLeap
             texture.LoadRawTextureData(imageData); 
             texture.Apply(); 
 
+            MLCamera.GetFramePose(vcamtimestamp * 1000, out camera_pose); 
+
             OnImageCaptured(texture);
-
-            // if ((texture.width != 8 && texture.height != 8))
-            // {
-            //     Debug.LogFormat("Invoking OIC with texture: {0} x {1}", texture.width, texture.height);
-            //     OnImageCaptured(texture);
-            // }
-
-            // OPTIONAL: Show texture here
-            // Debug.LogFormat("Showing Textures:"); 
-            // _screenRenderer.material.mainTexture = texture; 
-            // _screenRenderer.material.mainTextureScale = new Vector2(yData.Width / (float)yData.Stride, -1.0f);
         }
-
-            // Debug.LogFormat("Entered OFC");
-            // ulong vcamtimestamp = extras.VcamTimestampUs; 
-            // YUVBuffer yData = frameData.Y; 
-
-            // if (rawVideoTexture == null)
-            // {
-            //     rawVideoTexture = new Texture2D(
-            //         // (int) yData.Stride, (int) yData.Height, TextureFormat.R8, false);
-            //         1920, 1080, TextureFormat.R8, false);
-            //     rawVideoTexture.filterMode = FilterMode.Point; 
-            // }
-
-            // // Posterization levels for Magic Leap One Processor = 4
-            // ProcessImage(yData.Data, 4);
-            // // rawVideoTexture.Resize(1920, 1080);
-            // rawVideoTexture.LoadRawTextureData(yData.Data);
-            // rawVideoTexture.Apply(); 
-
-            // Debug.LogFormat("Leaving OFC with rawVideoTexture: {0} x {1}", 
-            //     rawVideoTexture.width, rawVideoTexture.height);
-
-            // m_OutImage.texture = (Texture) rawVideoTexture;
-
-            // if(_screenRenderer != null)
-            // {
-            //     _screenRenderer.material.mainTexture = rawVideoTexture; 
-            //     _screenRenderer.material.mainTextureScale = new Vector2(yData.Width / (float) yData.Stride, -1f);
-            //     // _previewObject.transform.localScale = _previewObject.transform.localScale * 3;
-            //     // _previewObject.transform.localScale = new Vector3(1.2f, 0.6f, 1);
-            // }
-
-            // OnImageCaptured(rawVideoTexture);
-
-
-            // byte[] imageData = frameData.Y.Data; 
-
-            // Texture2D texture = new Texture2D(8, 8);
-            // bool status = texture.LoadImage(imageData);
-
-            // if (status && (texture.width != 8 && texture.height != 8))
-            // {
-            //     Debug.LogFormat("Invoking Event -- {0} x {1}", texture.width, texture.height);
-            //     OnImageCaptured(texture);
-            // }
-        // }
 
         public void OnWorldpointFound(Vector3 world_point) 
         {
