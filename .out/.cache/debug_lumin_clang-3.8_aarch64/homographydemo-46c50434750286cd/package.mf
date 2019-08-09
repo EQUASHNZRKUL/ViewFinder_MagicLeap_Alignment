@@ -2,16 +2,16 @@
  "entries": [
   {
    "compression": 8,
-   "hash": "8e6877c63b8a517463781555f9cc885c7acaf5bf",
+   "hash": "bdf5304f77d1ffeb14354ff0405c8223410f4d9f",
    "pkgpath": "Data/Managed/Metadata/global-metadata.dat",
-   "size": 5114536,
+   "size": 5115624,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/Managed/Metadata/global-metadata.dat"
   },
   {
    "compression": 8,
-   "hash": "f32ae7e4f382eb6fd7714542373f578146ad885f",
+   "hash": "36cd0a0f1a7f31bf29436b44646a546ffc299b4f",
    "pkgpath": "bin/libil2cpp.so",
-   "size": 72815784,
+   "size": 72830232,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/Native/libil2cpp.so",
    "xfrm_flags": {
     "signed": {
@@ -23,9 +23,9 @@
      "version": 3
     }
    },
-   "xfrm_hash": "0a25596a55320ae190416c03c4cd90bbc15d7b14",
+   "xfrm_hash": "45f1a8cbc90c263fa0297df40f1b466334355823",
    "xfrm_path": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/.out/.cache/debug_lumin_clang-3.8_aarch64/homographydemo-46c50434750286cd/libil2cpp.so-ad3b4792d1e84873",
-   "xfrm_size": 72816542
+   "xfrm_size": 72830990
   },
   {
    "compression": 8,
@@ -402,7 +402,7 @@
   },
   {
    "compression": 8,
-   "hash": "ecbbdf5b6a05d2c22e7c3a82182d7398b5eee239",
+   "hash": "7d184aca402b5896dea866945fa0ac6ab43f89b9",
    "pkgpath": "Data/globalgamemanagers",
    "size": 77344,
    "src": "/Users/justinkae/Documents/Cornell_Tech/Unity/CornellTech_MagicLeap_0.22/Temp/StagingArea/Data/globalgamemanagers"

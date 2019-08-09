@@ -246,21 +246,39 @@ namespace MagicLeap
 
             device_camera.CopyFrom(_camera);
 
-            // MatrixToTransform(camera_pose, device_camera);
+            MatrixToTransform(camera_pose, device_camera);
 
-            // Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
+            Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
 
             MLCVCameraIntrinsicCalibrationParameters intrinsicParam; 
             MLCamera.GetIntrinsicCalibrationParameters(out intrinsicParam); 
 
-            Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1}", camera_pose, device_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left));
+            // Mat K = new Mat(new Size(3, 3), CvType.CV_8U);
+            // Mat Rt = new Mat(new Size(4, 3), CvType.CV_8U);
+            // Mat P = new Mat(new Size())
 
-            device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
+            Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1} \n Intrinsics: FOV -- {5} vs {2} \n Focal Length -- {6} vs. {3} \n Principal Point -- {7} vs. {4} \n Sensor Size {8} vs. {9} x {10}", 
+                camera_pose, 
+                device_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left), 
+                intrinsicParam.FOV, intrinsicParam.FocalLength, intrinsicParam.PrincipalPoint, 
+                _camera.fieldOfView, _camera.focalLength, _camera.lensShift, 
+                _camera.sensorSize, intrinsicParam.Width, intrinsicParam.Height);
+
+            // device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
+            device_camera.fieldOfView = intrinsicParam.FOV; 
+            device_camera.focalLength = intrinsicParam.FocalLength.x; 
+            device_camera.lensShift = new Vector2(
+                intrinsicParam.PrincipalPoint.x - (intrinsicParam.Width/2),
+                intrinsicParam.PrincipalPoint.y - (intrinsicParam.Height/2));
+            device_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
+            device_camera.usePhysicalProperties = true;
 
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
+                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(
+                    world_pos); 
+                    // world_pos, Camera.MonoOrStereoscopicEye.Left);
 
                 Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
                     c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
