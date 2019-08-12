@@ -185,6 +185,7 @@ namespace MagicLeap
             t.localScale = scale; 
         }
 
+        /// Normalizes [I] such that min(I) -> 0 and max(I) -> 255
         static void DesaturateMat(ref Mat I) {
             Core.MinMaxLocResult res = Core.minMaxLoc(I);
             double alpha = 255/(res.maxVal - res.minVal);
@@ -246,6 +247,8 @@ namespace MagicLeap
             Core.flip(cached_initMat, outMat, 0);
         }
 
+        /// Sets the projected ScreenPoints of the world coordinate values in src_world_array 
+        /// from the PoV of the RGB Camera. 
         void SetC2ScreenPoints() { 
             Camera _camera = Camera.main;
 
@@ -278,6 +281,8 @@ namespace MagicLeap
             }
         }
 
+        /// Sets the projected ScreenPoints of the world coordinate values in src_world_array 
+        /// from the PoV of the Controller. 
         void SetControllerScreenPoints() {
             // Camera _camera = Camera.main;
             // rgb_camera.CopyFrom(_camera);
@@ -295,6 +300,7 @@ namespace MagicLeap
             }
         }
 
+        /// Draws circles of radius 24/Scale_factor around the projected c1_point_array in [ref imageMat]
         void DrawC2ScreenPoints(ref Mat imageMat) {
             for (int i = 0; i < POINT_COUNT; i++)
             {
@@ -302,6 +308,7 @@ namespace MagicLeap
             }
         }
 
+        /// Displays [ref outMat] onto _previewObject as a texture. 
         void ShowMat(ref Mat outMat)
         {
             if (out_texture == null) {
@@ -325,6 +332,14 @@ namespace MagicLeap
             }
         }
 
+        /// (Helper to GetFaces()) Rectifies cached_initMat with corner points of [ref face_point_array] as source points. 
+        /// reg_point_array is used as output points. Resulting rectified image stored as face [i] 
+        /// in rectMat_array. 
+        ///
+        /// face_point_array should follow standards (like reg_point_array):
+        /// [0] ----- [1]
+        ///  |         |
+        /// [2] ----- [3]
         void Rectify(ref Point[] face_point_array, int i) {
             rectMat_array[i] = new Mat (360, 640, CvType.CV_8UC1);
             
@@ -346,6 +361,8 @@ namespace MagicLeap
             Imgproc.warpPerspective(cached_initMat, rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
         }
 
+        /// Rectifies and stores FACE_COUNT faces of object defined by [source_points] and stores into 
+        /// rectMat_array. 
         void GetFaces(ref Point[] source_points) {
             for (int i = 0; i < FACE_COUNT; i++) { // i :: face count
                 if (faceX_full[i]) { // For each valid face
@@ -362,6 +379,7 @@ namespace MagicLeap
             }
         }
 
+        /// Displays 3 stored faces of rectMat_array. 
         void ShowFaces() {
             if (faceX_full[0]) {
                 Texture2D topTexture1 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
@@ -380,12 +398,15 @@ namespace MagicLeap
             }
         }
 
+        // Combines 3 warped images in homoMat_array into one single image and stores into warped_Mat.
         void CombineWarped() {
             warpedMat = homoMat_array[0] + homoMat_array[1];
             warpedMat = homoMat_array[2] + warpedMat; 
             // Core.flip(warpedMat, warpedMat, 0);e
         }
 
+        /// Takes Rectified face [i] of rectMat_array, and warps them into images specified by 
+        /// [proj_point_array[i]]. 
         void HomographyTransform(int i, ref Point[] proj_point_array) {
             // Init homography result Mat
             homoMat_array[i] = new Mat (360, 640, CvType.CV_8UC1);
@@ -418,15 +439,6 @@ namespace MagicLeap
         {
             // _camera = Camera.main; 
             _previewObject.SetActive(false);
-            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
-            // rgb_camera.pixelRect = new_rect;
-        }
-
-        void Start()
-        {
-            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
-            // rgb_camera.pixelRect = new_rect;
-            // Debug.LogFormat("In Start: Rect -- {0} vs. {1}", rgb_camera.pixelRect, new_rect);
         }
 
         void Update() 
