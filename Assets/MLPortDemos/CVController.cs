@@ -475,7 +475,7 @@ namespace MagicLeap
             DrawC2ScreenPoints(ref cached_initMat);
 
             GetFaces(ref c1_point_array);
-            ShowFaces();
+            // ShowFaces();
 
             // Debug.Log("Showing Mat");
             outMat = cached_initMat;
