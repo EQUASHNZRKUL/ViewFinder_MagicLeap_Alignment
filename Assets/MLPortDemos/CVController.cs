@@ -269,8 +269,6 @@ namespace MagicLeap
                     world_pos); 
                 c1_point_array[i] = new Point((c2_vector3.x * 2)/SCALE_FACTOR, (c2_vector3.y * 2)/SCALE_FACTOR);
             }
-
-            
         }
 
         void SetControllerScreenPoints() {
