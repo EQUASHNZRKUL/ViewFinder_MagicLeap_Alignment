@@ -265,7 +265,7 @@ namespace MagicLeap
             {
                 Vector3 world_pos = src_world_array[i];
                 Vector3 c1_vector3 = rgb_camera.WorldToScreenPoint(world_pos); 
-                c1_point_array[i] = new Point(((c1_vector3.x * 2))/SCALE_FACTOR, (c1_vector3.y * 2)/SCALE_FACTOR);
+                c1_point_array[i] = new Point(((c1_vector3.x * 2) - 128)/SCALE_FACTOR, (c1_vector3.y * 2)/SCALE_FACTOR);
             }
         }
 
@@ -280,7 +280,6 @@ namespace MagicLeap
             {
                 Vector3 world_pos = src_world_array[i];
                 Vector3 c2_vector3 = 
-                    // rgb_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
                     rgb_camera.WorldToScreenPoint(world_pos);
 
                 hand_point_array[i] = new Point(c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
@@ -463,8 +462,8 @@ namespace MagicLeap
                 cached_bigMat.size(), texture.width, texture.height);
 
             Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 
-                1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
-                // 640.0/2048.0, 360.0/1080.0, 1); 
+                // 1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
+                640.0/2048.0, 360.0/1080.0, 1); 
             
             Debug.LogFormat("404 - resized Mats -- Matsize : {0} x {1}", 
                 cached_initMat.width(), cached_initMat.height());
@@ -484,12 +483,12 @@ namespace MagicLeap
 
         public void OnFrameCaptured(MLCameraResultExtras extras, YUVFrameInfo frameData, MLCameraFrameMetadata frameMetadata) {
             Debug.LogFormat("Entered OFC -- {0}", frameData.Y.Data.Length); 
-            ulong vcamtimestamp = extras.VcamTimestampUs; 
+            ulong vcamtimestamp = extras.VcamTimestampUs;  
             YUVBuffer yData = frameData.Y; 
             byte[] imageData = yData.Data; 
 
             Texture2D texture = new Texture2D((int) yData.Stride, (int) yData.Height, TextureFormat.R8, false);
-            texture.filterMode = FilterMode.Point; 
+            // texture.filterMode = FilterMode.Point; 
             Debug.LogFormat("Created Texture from imageData: {0}x{1}", yData.Stride, yData.Height); 
 
             // ProcessImage(yData.Data, 4); 
