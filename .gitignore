@@ -16,3 +16,4 @@ Assets/Plugins/
 Assets/Scenes/
 Assets/StreamingAssets/
 Assets/XR
+.out/*
