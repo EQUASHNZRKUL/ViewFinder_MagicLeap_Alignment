@@ -99,7 +99,7 @@ namespace MagicLeap
         [SerializeField]
         [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
         Camera m_deviceCamera;
-        public Camera device_camera
+        public Camera rgb_camera
         {
             get { return m_deviceCamera; }
             set { m_deviceCamera = value; }
@@ -238,38 +238,34 @@ namespace MagicLeap
         }
 
         // TODO: More sophisticated implementation
-        void SetC2ScreenPoints() {
-            // m = Matrix4x4.TRS(cam_offset, Quaternion.identity, new Vector3(1, 1, -1));
-            // Matrix4x4 cam_pose = m * _camera.cameraToWorldMatrix; 
-            // Matrix4x4 cam_pose = _camera.cameraToWorldMatrix; 
-
+        void SetC2ScreenPoints() { 
             Camera _camera = Camera.main;
 
-            MatrixToTransform(camera_pose, device_camera);
+            MatrixToTransform(camera_pose, rgb_camera);
 
-            Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
+            Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, rgb_camera.transform.position, rgb_camera.transform.rotation, rgb_camera.transform.localScale);
 
             MLCVCameraIntrinsicCalibrationParameters intrinsicParam; 
             MLCamera.GetIntrinsicCalibrationParameters(out intrinsicParam); 
 
             Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1} \n Intrinsics: FOV -- {5} vs {2} \n Focal Length -- {6} vs. {3} \n Principal Point -- {7} vs. {4} \n Sensor Size {8} vs. {9} x {10} \n Camera Size: {11} x {12} \n Camera Rect: {13}", 
                 camera_pose, 
-                device_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left), 
+                rgb_camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left), 
                 intrinsicParam.FOV, intrinsicParam.FocalLength, intrinsicParam.PrincipalPoint, 
                 _camera.fieldOfView, _camera.focalLength, _camera.lensShift, 
                 _camera.sensorSize, intrinsicParam.Width, intrinsicParam.Height, 
-                device_camera.pixelWidth, device_camera.pixelHeight, 
-                device_camera.pixelRect);
+                rgb_camera.pixelWidth, rgb_camera.pixelHeight, 
+                rgb_camera.pixelRect);
 
-            device_camera.fieldOfView = intrinsicParam.FOV; 
-            device_camera.focalLength = intrinsicParam.FocalLength.x; 
-            device_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
-            device_camera.usePhysicalProperties = true;
+            rgb_camera.fieldOfView = intrinsicParam.FOV; 
+            rgb_camera.focalLength = intrinsicParam.FocalLength.x; 
+            rgb_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
+            rgb_camera.usePhysicalProperties = true;
 
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(
+                Vector3 c2_vector3 = rgb_camera.WorldToScreenPoint(
                     world_pos); 
                 c1_point_array[i] = new Point((c2_vector3.x * 2)/SCALE_FACTOR, (c2_vector3.y * 2)/SCALE_FACTOR);
             }
@@ -279,17 +275,17 @@ namespace MagicLeap
 
         void SetControllerScreenPoints() {
             // Camera _camera = Camera.main;
-            // device_camera.CopyFrom(_camera);
-            device_camera.transform.position = ControllerTransform.position; 
-            device_camera.transform.rotation = ControllerTransform.rotation;
-            // device_camera.transform.eulerAngles = ControllerTransform.eulerAngles; 
+            // rgb_camera.CopyFrom(_camera);
+            rgb_camera.transform.position = ControllerTransform.position; 
+            rgb_camera.transform.rotation = ControllerTransform.rotation;
+            // rgb_camera.transform.eulerAngles = ControllerTransform.eulerAngles; 
 
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
                 Vector3 c2_vector3 = 
-                    // device_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
-                    device_camera.WorldToScreenPoint(world_pos);
+                    // rgb_camera.WorldToScreenPoint(world_pos, Camera.MonoOrStereoscopicEye.Left);
+                    rgb_camera.WorldToScreenPoint(world_pos);
 
                 hand_point_array[i] = new Point(c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
             }
@@ -420,14 +416,14 @@ namespace MagicLeap
             // _camera = Camera.main; 
             _previewObject.SetActive(false);
             // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
-            // device_camera.pixelRect = new_rect;
+            // rgb_camera.pixelRect = new_rect;
         }
 
         void Start()
         {
             // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
-            // device_camera.pixelRect = new_rect;
-            // Debug.LogFormat("In Start: Rect -- {0} vs. {1}", device_camera.pixelRect, new_rect);
+            // rgb_camera.pixelRect = new_rect;
+            // Debug.LogFormat("In Start: Rect -- {0} vs. {1}", rgb_camera.pixelRect, new_rect);
         }
 
         void Update() 
