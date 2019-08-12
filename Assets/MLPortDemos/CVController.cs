@@ -184,6 +184,16 @@ namespace MagicLeap
 
             t.localScale = scale; 
         }
+
+        static void DesaturateMat(ref Mat I) {
+            Core.MinMaxLocResult res = Core.minMaxLoc(I);
+            double alpha = 255/(res.maxVal - res.minVal);
+            double beta = -res.minVal * alpha; 
+            Mat O = (I - new Scalar(res.minVal))*alpha;
+            Debug.LogFormat("Mat Max and Min: {0}, {1} \n Alpha & Beta: {2}, {3} \n I(200, 200) -> O(200, 200): {4} vs. {5} vs. {6}", 
+                res.maxVal, res.minVal, alpha, beta, I.get(200, 200)[0], (alpha * I.get(200, 200)[0]) + beta, O.get(200,200)[0] );
+            I = O; 
+        }
         #endregion
 
         #region Master Functions
@@ -236,7 +246,6 @@ namespace MagicLeap
             Core.flip(cached_initMat, outMat, 0);
         }
 
-        // TODO: More sophisticated implementation
         void SetC2ScreenPoints() { 
             Camera _camera = Camera.main;
 
@@ -374,7 +383,7 @@ namespace MagicLeap
         void CombineWarped() {
             warpedMat = homoMat_array[0] + homoMat_array[1];
             warpedMat = homoMat_array[2] + warpedMat; 
-            // Core.flip(warpedMat, warpedMat, 0);
+            // Core.flip(warpedMat, warpedMat, 0);e
         }
 
         void HomographyTransform(int i, ref Point[] proj_point_array) {
@@ -451,23 +460,20 @@ namespace MagicLeap
         /// <param name="texture">The new image that got captured.</param>
         public void OnImageCaptured(Texture2D texture)
         {
-            Debug.LogFormat("395 - {0} x {1}", texture.width, texture.height);
-            // Convert Texture to Mat and store as cached_initMat
+            // Convert Texture to Mat, downsize, and store as cached_initMat
             cached_bigMat = new Mat(1080, 2048, CvType.CV_8UC1);
             cached_initMat = new Mat(360, 640, CvType.CV_8UC1); 
 
-            Debug.Log("400 - Converting to Mat");
             Utils.texture2DToMat(texture, cached_bigMat, true, 0);
-            Debug.LogFormat("Texture Dimensions: {0} -- {1} x {2}", 
-                cached_bigMat.size(), texture.width, texture.height);
 
             Imgproc.resize(cached_bigMat, cached_initMat, new Size(640, 360), 
                 // 1.0/SCALE_FACTOR, 1.0/SCALE_FACTOR, 1);
                 640.0/2048.0, 360.0/1080.0, 1); 
             
-            Debug.LogFormat("404 - resized Mats -- Matsize : {0} x {1}", 
-                cached_initMat.width(), cached_initMat.height());
-            ShowMat(ref cached_initMat); 
+            // Mat Operations
+            Debug.Log("Desaturating Mat");
+            DesaturateMat(ref cached_initMat); 
+            // ShowMat(ref cached_initMat); 
 
             // Finds existing screen points
             SetC2ScreenPoints();
