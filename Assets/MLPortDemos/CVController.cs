@@ -83,7 +83,6 @@ namespace MagicLeap
         private Vector3[] src_ray_array = new Vector3[POINT_COUNT];
         private Vector3[] src_world_array = new Vector3[POINT_COUNT];
         private Point[] c1_point_array = new Point[POINT_COUNT];
-        private Point[] c2_point_array = new Point[POINT_COUNT];
         private Point[] hand_point_array = new Point[POINT_COUNT];
 
         // Index
@@ -265,9 +264,8 @@ namespace MagicLeap
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = rgb_camera.WorldToScreenPoint(
-                    world_pos); 
-                c1_point_array[i] = new Point((c2_vector3.x * 2)/SCALE_FACTOR, (c2_vector3.y * 2)/SCALE_FACTOR);
+                Vector3 c1_vector3 = rgb_camera.WorldToScreenPoint(world_pos); 
+                c1_point_array[i] = new Point(((c1_vector3.x * 2))/SCALE_FACTOR, (c1_vector3.y * 2)/SCALE_FACTOR);
             }
         }
 
@@ -293,7 +291,6 @@ namespace MagicLeap
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Imgproc.circle(imageMat, c1_point_array[i], 24/SCALE_FACTOR, new Scalar(255, 255, 0));
-                Imgproc.circle(imageMat, c2_point_array[i], 24/SCALE_FACTOR, new Scalar(255, 255, 0));
             }
         }
 
@@ -477,7 +474,7 @@ namespace MagicLeap
             SetC2ScreenPoints();
             DrawC2ScreenPoints(ref cached_initMat);
 
-            GetFaces(ref c2_point_array);
+            GetFaces(ref c1_point_array);
             ShowFaces();
 
             // Debug.Log("Showing Mat");

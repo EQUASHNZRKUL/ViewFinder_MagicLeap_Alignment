@@ -16,4 +16,6 @@ Assets/Plugins/
 Assets/Scenes/
 Assets/StreamingAssets/
 Assets/XR
-.out/*
+.out/
+.out/homographydemo.mpk
+.out/.cache/
