@@ -245,7 +245,7 @@ namespace MagicLeap
 
             Camera _camera = Camera.main;
 
-            device_camera.CopyFrom(_camera);
+            // device_camera.CopyFrom(_camera);
 
             MatrixToTransform(camera_pose, device_camera);
 
@@ -286,11 +286,9 @@ namespace MagicLeap
             device_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
             device_camera.usePhysicalProperties = true;
 
-            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
-            // device_camera.pixelRect = new_rect;
-            device_camera.pixelRect.Set(0, 0, 1920, 1080);
+            // device_camera.pixelRect.Set(0, 0, 1920, 1080);
 
-            Debug.LogFormat("Camera Rect After: {0}", device_camera.pixelRect);
+            // Debug.LogFormat("Camera Rect After: {0}", device_camera.pixelRect);
             // device_camera.lensShift = new Vector2(
             //     intrinsicParam.PrincipalPoint.x - (intrinsicParam.Width/2),
             //     intrinsicParam.PrincipalPoint.y - (intrinsicParam.Height/2));
@@ -306,7 +304,7 @@ namespace MagicLeap
                 // Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
                 //     c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
 
-                c1_point_array[i] = new Point((c2_vector3.x)/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
+                c1_point_array[i] = new Point((c2_vector3.x * 2)/SCALE_FACTOR, (c2_vector3.y * 2)/SCALE_FACTOR);
             }
 
             
@@ -454,6 +452,15 @@ namespace MagicLeap
         {
             // _camera = Camera.main; 
             _previewObject.SetActive(false);
+            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
+            // device_camera.pixelRect = new_rect;
+        }
+
+        void Start()
+        {
+            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
+            // device_camera.pixelRect = new_rect;
+            // Debug.LogFormat("In Start: Rect -- {0} vs. {1}", device_camera.pixelRect, new_rect);
         }
 
         void Update() 
