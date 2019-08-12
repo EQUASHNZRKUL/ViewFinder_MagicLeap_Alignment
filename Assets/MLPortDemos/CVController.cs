@@ -286,7 +286,9 @@ namespace MagicLeap
             device_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
             device_camera.usePhysicalProperties = true;
 
-            device_camera.pixelRect = new UnityEngine.Rect(0, 0, 1920, 1080);
+            // UnityEngine.Rect new_rect = new UnityEngine.Rect(0, 0, 1920, 1080);
+            // device_camera.pixelRect = new_rect;
+            device_camera.pixelRect.Set(0, 0, 1920, 1080);
 
             Debug.LogFormat("Camera Rect After: {0}", device_camera.pixelRect);
             // device_camera.lensShift = new Vector2(
