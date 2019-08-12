@@ -461,7 +461,7 @@ namespace MagicLeap
             CombineWarped();
 
             // Output cached_initMat
-            // ShowMat(ref warpedMat);
+            ShowMat(ref warpedMat);
         }
         #endregion
 
