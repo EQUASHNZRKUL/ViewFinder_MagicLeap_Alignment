@@ -245,18 +245,12 @@ namespace MagicLeap
 
             Camera _camera = Camera.main;
 
-            // device_camera.CopyFrom(_camera);
-
             MatrixToTransform(camera_pose, device_camera);
 
             Debug.LogFormat("Camera Pose: {0} \n old transform: {1}, {2}, {3} \n new transform: {4}, {5}, {6}", camera_pose, _camera.transform.position, _camera.transform.rotation, _camera.transform.localScale, device_camera.transform.position, device_camera.transform.rotation, device_camera.transform.localScale);
 
             MLCVCameraIntrinsicCalibrationParameters intrinsicParam; 
             MLCamera.GetIntrinsicCalibrationParameters(out intrinsicParam); 
-
-            // Mat K = new Mat(new Size(3, 3), CvType.CV_8U);
-            // Mat Rt = new Mat(new Size(4, 3), CvType.CV_8U);
-            // Mat P = new Mat(new Size())
 
             Debug.LogFormat("Camera Pose: {0} \n Left Eye Pose: {1} \n Intrinsics: FOV -- {5} vs {2} \n Focal Length -- {6} vs. {3} \n Principal Point -- {7} vs. {4} \n Sensor Size {8} vs. {9} x {10} \n Camera Size: {11} x {12} \n Camera Rect: {13}", 
                 camera_pose, 
@@ -267,43 +261,16 @@ namespace MagicLeap
                 device_camera.pixelWidth, device_camera.pixelHeight, 
                 device_camera.pixelRect);
 
-            for (int i = 0; i < POINT_COUNT; i++)
-            {
-                Vector3 world_pos = src_world_array[i];
-                Vector3 c2_vector3 = device_camera.WorldToScreenPoint(
-                    world_pos); 
-                    // world_pos, Camera.MonoOrStereoscopicEye.Left);
-
-                // Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
-                //     c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
-
-                c2_point_array[i] = new Point((c2_vector3.x)/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
-            }
-
-            // device_camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera_pose);
             device_camera.fieldOfView = intrinsicParam.FOV; 
             device_camera.focalLength = intrinsicParam.FocalLength.x; 
             device_camera.sensorSize = new Vector2(intrinsicParam.Width, intrinsicParam.Height);
             device_camera.usePhysicalProperties = true;
 
-            // device_camera.pixelRect.Set(0, 0, 1920, 1080);
-
-            // Debug.LogFormat("Camera Rect After: {0}", device_camera.pixelRect);
-            // device_camera.lensShift = new Vector2(
-            //     intrinsicParam.PrincipalPoint.x - (intrinsicParam.Width/2),
-            //     intrinsicParam.PrincipalPoint.y - (intrinsicParam.Height/2));
-
-
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Vector3 world_pos = src_world_array[i];
                 Vector3 c2_vector3 = device_camera.WorldToScreenPoint(
                     world_pos); 
-                    // world_pos, Camera.MonoOrStereoscopicEye.Left);
-
-                // Debug.LogFormat("C2: ({0}, {1}) -> ({2}, {3})", 
-                //     c2_vector3.x, c2_vector3.y, c2_vector3.x/SCALE_FACTOR, c2_vector3.y/SCALE_FACTOR);
-
                 c1_point_array[i] = new Point((c2_vector3.x * 2)/SCALE_FACTOR, (c2_vector3.y * 2)/SCALE_FACTOR);
             }
 
