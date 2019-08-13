@@ -261,7 +261,7 @@ namespace MagicLeap
 
         /// Sets the projected ScreenPoints of the world coordinate values in src_world_array 
         /// from the PoV of the RGB Camera. 
-        void SetC2ScreenPoints() { 
+        void SetC1ScreenPoints() { 
             Camera _camera = Camera.main;
 
             MatrixToTransform(camera_pose, rgb_camera);
@@ -313,7 +313,7 @@ namespace MagicLeap
         }
 
         /// Draws circles of radius 24/Scale_factor around the projected c1_point_array in [ref imageMat]
-        void DrawC2ScreenPoints(ref Mat imageMat) {
+        void DrawC1ScreenPoints(ref Mat imageMat) {
             for (int i = 0; i < POINT_COUNT; i++)
             {
                 Imgproc.circle(imageMat, c1_point_array[i], 24/SCALE_FACTOR, new Scalar(255, 255, 0));
@@ -449,9 +449,12 @@ namespace MagicLeap
         #endregion
 
         #region Unity Methods
+        /// Triggered on start by Unity. 
+        /// 
+        /// Currently just handles setting the main display. 
         void Awake()
         {
-            // _camera = Camera.main; 
+            // Main display handling
             if (HAND_DISPLAY) {
                 _previewObject = _handObject; 
                 _hudObject.SetActive(false);
@@ -463,16 +466,23 @@ namespace MagicLeap
             _previewObject.SetActive(false);
         }
 
+        /// Triggered on each frame by Unity. 
+        ///<summary>
+        /// If captured Mat is cached, obtains the controller's projected screenpoints and stores them in [hand_point_array].
+        /// Then draws C2 Screen points onto [cached_initMat] to display them. Then each face's homography transform is 
+        /// calculated and warped face textures are cropped from [cached_initMat] and stored in [homoMat_array]. These textures
+        /// are then combined and displayed as a single image -- the controller's perspective. 
+        ///</summary>
+        ///
         void Update() 
         {
             // Checks have valid number of points
             if (cached_initMat == null)
                 return; 
 
-            // Takes world points and extracts c2 screen points (and displays them)
+            // Takes world points and extracts c1 screen points (and displays them)
             if (world_idx >= POINT_COUNT) {
                 SetControllerScreenPoints();
-                DrawC2ScreenPoints(ref cached_initMat);
             }
 
             // STAGE III
@@ -489,7 +499,9 @@ namespace MagicLeap
 
         #region Event Handlers        
         /// <summary>
-        /// Rectifies faces of object in captured image and stores into rectMat_array. 
+        /// Takes captured image in the form of [texture] and converts into and downsizes OpenCV Mat [cached_initMat]. 
+        /// The Mat is desaturated/normalized, and then the C1 screen are detected and drawn. The rectified faces are 
+        /// then extracted from [cached_initMat]. 
         /// </summary>
         /// <param name="texture">The new image that got captured.</param>
         public void OnImageCaptured(Texture2D texture)
@@ -505,18 +517,15 @@ namespace MagicLeap
                 640.0/2048.0, 360.0/1080.0, 1); 
             
             // Mat Operations
-            Debug.Log("Desaturating Mat");
             DesaturateMat(ref cached_initMat); 
-            // ShowMat(ref cached_initMat); 
 
             // Finds existing screen points
-            SetC2ScreenPoints();
-            DrawC2ScreenPoints(ref cached_initMat);
+            SetC1ScreenPoints();
+            DrawC1ScreenPoints(ref cached_initMat);
 
+            // Faces Extracted (and displayed)
             GetFaces(ref c1_point_array);
-            // ShowFaces();
 
-            // Debug.Log("Showing Mat");
             // outMat = cached_initMat;
             // ShowMat(ref outMat);
         }
@@ -526,16 +535,12 @@ namespace MagicLeap
         /// stores into [camera_pose]. OnImageCaptured triggered by this function. 
         /// </summary>
         public void OnFrameCaptured(MLCameraResultExtras extras, YUVFrameInfo frameData, MLCameraFrameMetadata frameMetadata) {
-            Debug.LogFormat("Entered OFC -- {0}", frameData.Y.Data.Length); 
             ulong vcamtimestamp = extras.VcamTimestampUs;  
             YUVBuffer yData = frameData.Y; 
             byte[] imageData = yData.Data; 
 
             Texture2D texture = new Texture2D((int) yData.Stride, (int) yData.Height, TextureFormat.R8, false);
-            // texture.filterMode = FilterMode.Point; 
-            Debug.LogFormat("Created Texture from imageData: {0}x{1}", yData.Stride, yData.Height); 
 
-            // ProcessImage(yData.Data, 4); 
             texture.LoadRawTextureData(imageData); 
             texture.Apply(); 
 
@@ -555,7 +560,6 @@ namespace MagicLeap
             for (int i = 0; i < FACE_COUNT; i++) {
                 faceX_full[i] = check_faces(i); 
             }
-
         }
 
         /// <summary>
