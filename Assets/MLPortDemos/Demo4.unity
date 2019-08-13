@@ -1675,15 +1675,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efd6c23df8eff4c40870e605c287c8d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _TopImage1: {fileID: 1839374180}
-  m_TopImage1: {fileID: 638845445}
-  _TopImage2: {fileID: 1191877116}
-  m_TopImage2: {fileID: 891451377}
-  _TopImage3: {fileID: 1213751336}
-  m_TopImage3: {fileID: 560556540}
   ControllerTransform: {fileID: 671722723}
-  _previewObject: {fileID: 2081483295}
   m_deviceCamera: {fileID: 1813620121}
+  _recordingIndicator: {fileID: 0}
+  _previewObject: {fileID: 2081483295}
+  _screenRenderer: {fileID: 0}
+  m_TopImage1: {fileID: 638845445}
+  m_TopImage2: {fileID: 891451377}
+  m_TopImage3: {fileID: 560556540}
+  m_OutImage: {fileID: 0}
 --- !u!114 &1889385891
 MonoBehaviour:
   m_ObjectHideFlags: 0

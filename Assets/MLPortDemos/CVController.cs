@@ -41,12 +41,19 @@ namespace MagicLeap
             set { m_deviceCamera = value; }
         }
 
+        [Header("Constants")]
+        [SerializeField, Tooltip("True if display is attached to hand")]
+        public bool HAND_DISPLAY = true; 
+
         [Header("Visuals")]
         [SerializeField, Tooltip("Object that will show up when recording")]
         private GameObject _recordingIndicator = null;
 
         [SerializeField, Tooltip("Object to set new images on.")]
-        private GameObject _previewObject = null;
+        private GameObject _hudObject = null;
+
+        [SerializeField, Tooltip("Object to set new images on.")]
+        private GameObject _handObject = null;
 
         [SerializeField, Tooltip("The renderer to show the video capture on")]
         private Renderer _screenRenderer = null;
@@ -107,6 +114,8 @@ namespace MagicLeap
         // Textures
         private Texture2D rawVideoTexture; 
         private Texture2D out_texture;
+
+        private GameObject _previewObject = null; 
         #endregion
 
         #region Helper Functions
@@ -322,7 +331,7 @@ namespace MagicLeap
 
             Utils.matToTexture2D(outMat, out_texture, false, 0);
 
-            if(_previewObject != null)
+            if(_previewObject.activeSelf == false)
             {
                 _previewObject.SetActive(true);
                 Renderer renderer = _previewObject.GetComponent<Renderer>();
@@ -330,8 +339,10 @@ namespace MagicLeap
                 {
                     renderer.material.mainTexture = out_texture;
                 }
-                // _previewObject.transform.localScale = _previewObject.transform.localScale * 4;
-                // _previewObject.transform.localScale = new Vector3(1.2f, 0.8f, 1);
+                if (HAND_DISPLAY) {
+                    _previewObject.transform.localScale = new Vector3(0.2f, 0.1f, 1);
+                    _previewObject.transform.localPosition = new Vector3(0f, 0.13f, 0f);
+                }
             }
         }
 
@@ -441,6 +452,14 @@ namespace MagicLeap
         void Awake()
         {
             // _camera = Camera.main; 
+            if (HAND_DISPLAY) {
+                _previewObject = _handObject; 
+                _hudObject.SetActive(false);
+            }
+            else {
+                _previewObject = _hudObject; 
+                _handObject.SetActive(false);
+            }
             _previewObject.SetActive(false);
         }
 
