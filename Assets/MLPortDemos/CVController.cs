@@ -28,7 +28,29 @@ namespace MagicLeap
 {
     public class CVController : MonoBehaviour
     {
-        #region Public Variables
+        #region Unity Parameters
+        [Tooltip("Reference to the controller object's transform.")]
+        public Transform ControllerTransform;
+
+        [SerializeField]
+        [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
+        Camera m_deviceCamera;
+        public Camera rgb_camera
+        {
+            get { return m_deviceCamera; }
+            set { m_deviceCamera = value; }
+        }
+
+        [Header("Visuals")]
+        [SerializeField, Tooltip("Object that will show up when recording")]
+        private GameObject _recordingIndicator = null;
+
+        [SerializeField, Tooltip("Object to set new images on.")]
+        private GameObject _previewObject = null;
+
+        [SerializeField, Tooltip("The renderer to show the video capture on")]
+        private Renderer _screenRenderer = null;
+
         [SerializeField, Tooltip("Object to set new images on.")]
         private RawImage m_TopImage1 = null;
 
@@ -40,18 +62,9 @@ namespace MagicLeap
 
         [SerializeField, Tooltip("Object to set new images on.")]
         private RawImage m_OutImage = null;
-
-        [Tooltip("Reference to the controller object's transform.")]
-        public Transform ControllerTransform;
         #endregion
 
         #region Private Variables
-        [SerializeField, Tooltip("Object to set new images on.")]
-        private GameObject _previewObject = null;
-
-        [SerializeField, Tooltip("The renderer to show the video capture on")]
-        private Renderer _screenRenderer = null;
-
         // Constants
         private static int POINT_COUNT = 7; 
         private static int FACE_COUNT = 3; 
@@ -94,16 +107,6 @@ namespace MagicLeap
         // Textures
         private Texture2D rawVideoTexture; 
         private Texture2D out_texture;
-
-        [SerializeField]
-        [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
-        Camera m_deviceCamera;
-        public Camera rgb_camera
-        {
-            get { return m_deviceCamera; }
-            set { m_deviceCamera = value; }
-        }
-
         #endregion
 
         #region Helper Functions
@@ -467,7 +470,7 @@ namespace MagicLeap
 
         #region Event Handlers        
         /// <summary>
-        /// Updates preview object with new captured image
+        /// Rectifies faces of object in captured image and stores into rectMat_array. 
         /// </summary>
         /// <param name="texture">The new image that got captured.</param>
         public void OnImageCaptured(Texture2D texture)
@@ -495,10 +498,14 @@ namespace MagicLeap
             // ShowFaces();
 
             // Debug.Log("Showing Mat");
-            outMat = cached_initMat;
-            ShowMat(ref outMat);
+            // outMat = cached_initMat;
+            // ShowMat(ref outMat);
         }
 
+        /// <summary>
+        /// Handles converting [frameData] from byte data into Unity Texture and gets frame pose, and
+        /// stores into [camera_pose]. OnImageCaptured triggered by this function. 
+        /// </summary>
         public void OnFrameCaptured(MLCameraResultExtras extras, YUVFrameInfo frameData, MLCameraFrameMetadata frameMetadata) {
             Debug.LogFormat("Entered OFC -- {0}", frameData.Y.Data.Length); 
             ulong vcamtimestamp = extras.VcamTimestampUs;  
@@ -518,6 +525,9 @@ namespace MagicLeap
             OnImageCaptured(texture);
         }
 
+        /// <summary>
+        /// Handles world_point caching and checking if faces are captured yet. 
+        /// </summary>
         public void OnWorldpointFound(Vector3 world_point) 
         {
             src_world_array[world_idx] = world_point;
@@ -527,6 +537,24 @@ namespace MagicLeap
                 faceX_full[i] = check_faces(i); 
             }
 
+        }
+
+        /// <summary>
+        /// Handles video capture being started.
+        /// </summary>
+        public void OnCaptureStarted()
+        {
+            // Manage canvas visuals
+            _recordingIndicator.SetActive(true);
+        }
+
+        /// <summary>
+        /// Handles video capture ending.
+        /// </summary>
+        public void OnCaptureEnded()
+        {
+            // Manage canvas visuals
+            _recordingIndicator.SetActive(false);
         }
         #endregion
     }

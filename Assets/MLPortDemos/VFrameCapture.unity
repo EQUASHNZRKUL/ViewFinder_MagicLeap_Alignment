@@ -925,7 +925,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1308695584
 Transform:
   m_ObjectHideFlags: 0
@@ -935,7 +935,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1308695583}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.344, y: 0.205, z: 0}
+  m_LocalPosition: {x: -0.575, y: 0.252, z: 0}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0}
   m_Children: []
   m_Father: {fileID: 1468009404}
@@ -1571,14 +1571,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efd6c23df8eff4c40870e605c287c8d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ControllerTransform: {fileID: 498394102}
+  m_deviceCamera: {fileID: 1213351678}
+  _recordingIndicator: {fileID: 1308695583}
+  _previewObject: {fileID: 2015268752}
+  _screenRenderer: {fileID: 2081483298}
   m_TopImage1: {fileID: 1684569425}
   m_TopImage2: {fileID: 246458251}
   m_TopImage3: {fileID: 1782065197}
   m_OutImage: {fileID: 802342042}
-  ControllerTransform: {fileID: 498394102}
-  _previewObject: {fileID: 2015268752}
-  _screenRenderer: {fileID: 2081483298}
-  m_deviceCamera: {fileID: 1213351678}
 --- !u!114 &1889385892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1597,12 +1598,12 @@ MonoBehaviour:
   OnVideoCaptureStarted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1889385888}
-        m_MethodName: 
+      - m_Target: {fileID: 1889385891}
+        m_MethodName: OnCaptureStarted
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1613,12 +1614,12 @@ MonoBehaviour:
   OnVideoCaptureEnded:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1889385888}
-        m_MethodName: 
+      - m_Target: {fileID: 1889385891}
+        m_MethodName: OnCaptureEnded
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 

@@ -55,6 +55,8 @@ namespace MagicLeap
         // Index of current marker
         private int idx; 
 
+        private static int POINT_COUNT = 7; 
+
         [Space, SerializeField, Tooltip("ControllerConnectionHandler reference.")]
         private ControllerConnectionHandler _controllerConnectionHandler = null;
 
@@ -144,10 +146,10 @@ namespace MagicLeap
         #endregion
 
         #region Helper Functions
-        private void BumperPress()
+        private void HomePress()
         {
             spawnedObject = Instantiate(m_PlacedPrefab, transform.position, transform.rotation);
-            idx++;
+            // idx++;
 
             OnWorldpointFound.Invoke(transform.position);
         }
@@ -201,7 +203,12 @@ namespace MagicLeap
         private void OnButtonDown(byte controllerId, MLInputControllerButton button)
         {
             if (_controllerConnectionHandler.IsControllerValid(controllerId) && button == MLInputControllerButton.HomeTap)
-                BumperPress(); 
+            {
+                if (idx < POINT_COUNT){
+                    HomePress(); 
+                }
+                idx++;
+            }
         }
 
         private void OnHeadTrackingMapEvent(MLHeadTrackingMapEvent mapEvents)
@@ -209,7 +216,7 @@ namespace MagicLeap
             if (mapEvents.IsLost())
             {
                 // Destroy(cursorObject);
-                for (int i = 0; i < 7; i++) {
+                for (int i = 0; i < POINT_COUNT; i++) {
                     Destroy(spawnedObject);
                 }
                 idx = 0; 

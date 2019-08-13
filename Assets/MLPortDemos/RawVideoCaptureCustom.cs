@@ -53,6 +53,8 @@ namespace MagicLeap
         // Is the camera currently recording
         private bool _isCapturing;
 
+        private int _homePresses = 0;
+
         private bool _isCameraConnected = false;
 
         private float _captureStartTime;
@@ -331,11 +333,31 @@ namespace MagicLeap
         /// <param name="button">The button that is being pressed.</param>
         private void OnButtonDown(byte controllerId, MLInputControllerButton button)
         {
+            if (_controllerConnectionHandler.IsControllerValid(controllerId) && MLInputControllerButton.HomeTap == button)
+            {
+                if (_homePresses < 7)
+                {
+                    _homePresses++; 
+                }
+                else // After all world markers are instantiated, Home button enables and disables recording
+                {
+                    if (!_isCapturing)
+                    {
+                        EnableMLCamera();
+                        StartCapture();
+                    }
+                    else
+                    {
+                        EndCapture();
+                        DisableMLCamera();
+                    }
+                }
+            }
             if (_controllerConnectionHandler.IsControllerValid(controllerId) && MLInputControllerButton.Bumper == button)
             {
                 if (!_isCapturing)
                 {
-                    StartCapture();
+                    // StartCapture();
                 }
                 else
                 {
