@@ -50,7 +50,7 @@ namespace MagicLeap
         public Transform ControllerTransform;
 
         [SerializeField]
-        [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
+        [Tooltip("Virtual Camera used to imitate MLOne's RGB Camera.")]
         Camera m_deviceCamera;
         public Camera rgb_camera
         {
@@ -66,41 +66,60 @@ namespace MagicLeap
         [SerializeField, Tooltip("Object that will show up when recording")]
         private GameObject _recordingIndicator = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
+        [SerializeField, Tooltip("HUD Object to set output images on.")]
         private GameObject _hudObject = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
+        [SerializeField, Tooltip("Controller Object to set output images on.")]
         private GameObject _handObject = null;
 
-        [SerializeField, Tooltip("The renderer to show the video capture on")]
-        private Renderer _screenRenderer = null;
+        // [SerializeField, Tooltip("The renderer to show the video capture on")]
+        // private Renderer _screenRenderer = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
-        private RawImage m_TopImage1 = null;
+        // [SerializeField, Tooltip("Object to set new images on.")]
+        // private RawImage m_TopImage1 = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
-        private RawImage m_TopImage2 = null;
+        // [SerializeField, Tooltip("Object to set new images on.")]
+        // private RawImage m_TopImage2 = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
-        private RawImage m_TopImage3 = null;
+        // [SerializeField, Tooltip("Object to set new images on.")]
+        // private RawImage m_TopImage3 = null;
 
-        [SerializeField, Tooltip("Object to set new images on.")]
-        private RawImage m_OutImage = null;
+        // [SerializeField, Tooltip("Object to set output images on.")]
+        // private RawImage m_OutImage = null;
         #endregion
 
         #region Private Variables
-        // Constants
+        /// CONSTANTS
+        ///<summary>
+        /// <param name="Point Count"> The number of points being tracked. </param>
+        /// <param name="Face Count"> The number of faces the tracked points form. </param>
+        /// <param name="Cache Count"> The number of captured textures to store for each face </param>
+        /// <param name="Homography Width"> The Width of the rectified texture Mats in pixels </param>
+        /// <param name="Homography Height"> The Height of the rectified texture Mats in pixels </param>
+        /// <param name="Scale Factor"> The Scale Factor in downscaling the captured image 
+        ///                             -> Mat used for OpenCV calculations</param>
+        ///</summary>
         private static int POINT_COUNT = 7; 
         private static int FACE_COUNT = 3; 
         private static int CACHE_COUNT = 5; 
-        private static float X_OFFSET = -1.0f; 
         public static double HOMOGRAPHY_WIDTH = 640.0;
         public static double HOMOGRAPHY_HEIGHT = 360.0;
-        public static int RECT_SIZE = 400; 
         public static int SCALE_FACTOR = 3; 
 
-        // Mats & Mat Arrays
-        public Mat outMat = new Mat(360, 640, CvType.CV_8UC1);
+        /// Mats & Mat Arrays
+        /// <summary>
+        /// <param name="cached_bigMat"> The Mat representation of the input texture from the RGB Camera </param>
+        /// <param name="cached_initMat"> The downscaled input Mat </param>
+        /// <param name="warpedMat"> The output Mat; combined Mat of each warped face </param>
+        /// <param name="ids"> The ArUco IDs of detected markers. Not used in MLOne build as of now </param>
+        ///
+        /// <param name="corners"> List of (1x4) Mats where each element is a corner coordinate 
+        ///                        of an ArUco marker in pixel space </param>
+        /// <param name="rectMat_array"> Array of rectified textures in Mat form. rectMat_array[i, c] corresponds to
+        ///                              the rectified face texture of face [i] from capture [c]. </param>
+        /// <param name="homoMat_array"> Array of warped face textures in Mat form. Each index corresponds to face index
+        ///                              and is ready to be displayed, once the proper faces are combined.  </param>
+        /// </summary>
         private Mat cached_bigMat = new Mat (1080, 1920, CvType.CV_8UC1);
         private Mat cached_initMat = null; 
         private Mat warpedMat = new Mat (360, 640, CvType.CV_8UC1);
@@ -111,32 +130,57 @@ namespace MagicLeap
         private Mat[] homoMat_array = new Mat[FACE_COUNT];
 
         // Face corner indices for each face
+        /// [face_index] is an int matrix (FACE_COUNT x 4). face_index[i, j] corresponds to face [i]'s point index 
+        /// of corner [j]. Corners are indexed like regular point arrays, where the index follows a Z-path along the
+        /// face. That is values of j correspond to the following corners: 
+        /// [0] ----- [1]       So face_index[1, 2] is the point array index that corresponds to the 2nd face's 
+        ///  |   [i]   |        bottom left corner; src_world_array[face_index[1, 2]] is the world point of 
+        /// [2] ----- [3]       face 2's bottom left corner and similarly for c1_point_array, etc. 
+        /// This array needs to be adjusted for any change in face count. 
         private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
 
         // Point Lists
-        private Vector3[] src_ray_array = new Vector3[POINT_COUNT];
+        /// Note: Each of the POINT_COUNT length arrays has consistent index values. So point [i] in src_world_arrays
+        /// corresponds to the same point as point [i] in c1_point_array, just in a different representation 
+        /// (world vs. c1 screen). 
+        /// <param name="src_world_array"> The array of tracked points in world space. </param>
+        /// <param name="c1_point_array"> The array of tracked points in C1 Screen space. These are screen points of 
+        ///                               tracked points in the head-mounted camera or initial capture camera view. </param>
+        /// <param name="hand_point_array"> The array of tracked points in Controller Screen space. These are screen
+        ///                                 points of tracked points in the controller's 'camera' view. </param>
+        /// <param name="camerapos_array"> The array of world points at which C1 images were captured. Each index
+        ///                                corresponds to a different capture. Used for variable textures. </param>
+        // private Vector3[] src_ray_array = new Vector3[POINT_COUNT];
         private Vector3[] src_world_array = new Vector3[POINT_COUNT];
         private Point[] c1_point_array = new Point[POINT_COUNT];
         private Point[] hand_point_array = new Point[POINT_COUNT];
         private Vector3[] camerapos_array = new Vector3[CACHE_COUNT]; 
 
         // Indices
+        /// <param name="world_idx"> The current world point being captured. (Used for MLOne implementation of manual
+        ///                          corner detection) </param>
+        /// <param name="cap_i"> The current capture index being taken. </param>
         private int world_idx; 
         private int cap_i = 0; 
 
         // Face Lists
+        /// <param name="faceX_full"> Each index corresponds to a different face and whether all 4 of its corners 
+        ///                           have been added to the [src_world_array]. </param>
         private bool[] faceX_full = new bool[3];
 
         // Textures
-        private Texture2D rawVideoTexture; 
+        /// <param name="out_texture"> The texture displayed in as the output image. </param>
+        /// <param name="_previewObject"> The object used to display the [out_texture]. </param>
         private Texture2D out_texture;
-
         private GameObject _previewObject = null; 
 
+        // Matrix4x4 values
+        /// <param name="camera_pose"> The Transform from world point origin to the RGB Camera in world space. </param>
         private Matrix4x4 camera_pose; 
         #endregion
 
         #region Helper Functions
+        /// Counts the number of undetected points in the world array. 
         int count_src_nulls() {
             int acc = 0;
             for (int i = 0; i < 7; i++)
@@ -148,6 +192,7 @@ namespace MagicLeap
             return (7 - acc); 
         }
 
+        /// True if [face_i] has all 4 constituent points detected. 
         bool check_faces(int face_i) {
             for (int i = 0; i < 4; i++) {
                 int src_i = face_index[face_i, i]; 
@@ -158,6 +203,7 @@ namespace MagicLeap
             return true; 
         }
         
+        /// ArUco ID to Source Point Array Index conversion function.
         static int arucoTosrc(int a) {
             if (a == 7) { return 4; }
             else if (a == 6) { return 5; }
@@ -165,6 +211,7 @@ namespace MagicLeap
             else {return a; }
         }
 
+        /// Source Point Array Index to ArUco ID conversion function. 
         static int srcToarcuo(int s) {
             if (s == 4) { return 7; }
             else if (s == 5) {return 6; }
@@ -172,15 +219,7 @@ namespace MagicLeap
             else {return s; }
         }
 
-        static void ProcessImage(byte[] data, byte levels)
-        {
-            byte factor = (byte) (byte.MaxValue / levels);
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte) (data[i] / factor * factor);
-            }
-        }
-
+        /// Moves Camera [c] to the transform in Matrix4x4 form [m]. 
         static void MatrixToTransform(Matrix4x4 m, Camera c)
         {
             Transform t = c.transform; 
@@ -233,6 +272,7 @@ namespace MagicLeap
             cap_i++;
         }
 
+        /// Searches for the Capture World Point Index closest to the Controller's position. 
         public int GetClosestIndex() {
             Vector3 curr_cam = ControllerTransform.position; 
 
@@ -251,54 +291,54 @@ namespace MagicLeap
         #endregion
 
         #region Master Functions
-        void ArucoDetection() {
-            // Detect ArUco markers
-            Dictionary dict = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_1000);
-            Aruco.detectMarkers(cached_initMat, dict, corners, ids);
-            Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
-            // Debug.Log("AD - 93: Markers Detected");
-            // Debug.LogFormat("Corners: {0}", corners.Count);
+        // void ArucoDetection() {
+        //     // Detect ArUco markers
+        //     Dictionary dict = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_1000);
+        //     Aruco.detectMarkers(cached_initMat, dict, corners, ids);
+        //     Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
+        //     // Debug.Log("AD - 93: Markers Detected");
+        //     // Debug.LogFormat("Corners: {0}", corners.Count);
 
-            // Get desired corner of marker
-            Point[] src_point_array = new Point[POINT_COUNT];
-            for (int i = 0; i < corners.Count; i++) {
-                int aruco_id = (int) (ids.get(i, 0)[0]);
-                int src_i = arucoTosrc(aruco_id);
-                int corner_i = aruco_id % 4;
+        //     // Get desired corner of marker
+        //     Point[] src_point_array = new Point[POINT_COUNT];
+        //     for (int i = 0; i < corners.Count; i++) {
+        //         int aruco_id = (int) (ids.get(i, 0)[0]);
+        //         int src_i = arucoTosrc(aruco_id);
+        //         int corner_i = aruco_id % 4;
 
-                // Debug.LogFormat("AD - 101: aruco_id: {0}; corner_i: {1}; src_i: {2}", aruco_id, corner_i, src_i);
+        //         // Debug.LogFormat("AD - 101: aruco_id: {0}; corner_i: {1}; src_i: {2}", aruco_id, corner_i, src_i);
 
-                // Store corner[i] into spa[src_i]
-                src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
+        //         // Store corner[i] into spa[src_i]
+        //         src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
 
-                // Display the corner as circle on outMat. 
-                Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
-            }
+        //         // Display the corner as circle on outMat. 
+        //         Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
+        //     }
 
-            // Converting to Ray values for Raycast
-            Camera _cam = Camera.main;
-            if (_cam != null) {
-                for (int i = 0; i < POINT_COUNT; i++) {
-                    if (src_point_array[i] != null) {
-                        src_ray_array[i] = _cam.ScreenPointToRay(
-                            new Vector3((float) src_point_array[i].x,(float) src_point_array[i].y, 0)).direction;
-                    }
-                }
-            }
-            // Debug.LogFormat("Detected Direction: {0}", src_ray_array[0]);
-            // Debug.LogFormat("Camera Direction: {0}", _cam.transform.forward);
+        //     // Converting to Ray values for Raycast
+        //     Camera _cam = Camera.main;
+        //     if (_cam != null) {
+        //         for (int i = 0; i < POINT_COUNT; i++) {
+        //             if (src_point_array[i] != null) {
+        //                 src_ray_array[i] = _cam.ScreenPointToRay(
+        //                     new Vector3((float) src_point_array[i].x,(float) src_point_array[i].y, 0)).direction;
+        //             }
+        //         }
+        //     }
+        //     // Debug.LogFormat("Detected Direction: {0}", src_ray_array[0]);
+        //     // Debug.LogFormat("Camera Direction: {0}", _cam.transform.forward);
 
-            // Count non-null source points 
-            bool spa_full = (count_src_nulls() == 7);
+        //     // Count non-null source points 
+        //     bool spa_full = (count_src_nulls() == 7);
 
-            // Check if have valid faces
-            for (int i = 0; i < FACE_COUNT; i++) {
-                // faceX_full[i] = check_faces(i); 
-                faceX_full[i] = check_faces(i); 
-            }
+        //     // Check if have valid faces
+        //     for (int i = 0; i < FACE_COUNT; i++) {
+        //         // faceX_full[i] = check_faces(i); 
+        //         faceX_full[i] = check_faces(i); 
+        //     }
 
-            Core.flip(cached_initMat, outMat, 0);
-        }
+        //     // Core.flip(cached_initMat, outMat, 0);
+        // }
 
         /// Sets the projected ScreenPoints of the world coordinate values in src_world_array 
         /// from the PoV of the RGB Camera. 
@@ -438,23 +478,23 @@ namespace MagicLeap
         }
 
         /// Displays 3 stored faces of rectMat_array. 
-        void ShowFaces() {
-            if (faceX_full[0]) {
-                Texture2D topTexture1 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[0, cap_i], topTexture1, false, 0);
-                m_TopImage1.texture = (Texture) topTexture1;
-            }
-            if (faceX_full[1]) {
-                Texture2D topTexture2 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[1, cap_i], topTexture2, false, 0);
-                m_TopImage2.texture = (Texture) topTexture2;
-            }
-            if (faceX_full[2]) {
-                Texture2D topTexture3 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[2, cap_i], topTexture3, false, 0);
-                m_TopImage3.texture = (Texture) topTexture3;
-            }
-        }
+        // void ShowFaces() {
+        //     if (faceX_full[0]) {
+        //         Texture2D topTexture1 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
+        //         Utils.matToTexture2D(rectMat_array[0, cap_i], topTexture1, false, 0);
+        //         m_TopImage1.texture = (Texture) topTexture1;
+        //     }
+        //     if (faceX_full[1]) {
+        //         Texture2D topTexture2 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
+        //         Utils.matToTexture2D(rectMat_array[1, cap_i], topTexture2, false, 0);
+        //         m_TopImage2.texture = (Texture) topTexture2;
+        //     }
+        //     if (faceX_full[2]) {
+        //         Texture2D topTexture3 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
+        //         Utils.matToTexture2D(rectMat_array[2, cap_i], topTexture3, false, 0);
+        //         m_TopImage3.texture = (Texture) topTexture3;
+        //     }
+        // }
 
         // Combines 3 warped images in homoMat_array into one single image and stores into warped_Mat.
         void CombineWarped() {
