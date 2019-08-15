@@ -26,6 +26,23 @@ using OpenCVForUnity.ArucoModule;
 
 namespace MagicLeap
 {
+    /// <summary>
+    /// On Touch: 
+    /// Stage I: Detects ArUco markers in Screen space and uses the AR Controller to convert to world space. 
+    /// World space coordinates are cached and collected along with the initial captured image and camera world
+    /// position. Detected points are marked on the image. 
+    ///
+    /// Stage II: If ArUco markers form a face, the face surface is extracted from the captured image, rectified 
+    /// and cached, and then displayed on the left side of the display. 
+    /// 
+    /// On Each Frame: 
+    /// Stage III: Current camera position and rotation are used to get new screen points of projected world points.
+    /// Current camera position is also used to find cached rectified texture that was captured closest to 
+    /// current location to obtain most accurate reconstructed view. 
+    ///
+    /// With new screen coordinates, Homography is created and used towarp cached rectified texture for each 
+    /// face. Then the faces are combined and displayed as a single image.
+    /// </summary>
     public class CVController : MonoBehaviour
     {
         #region Unity Parameters
@@ -75,26 +92,23 @@ namespace MagicLeap
         // Constants
         private static int POINT_COUNT = 7; 
         private static int FACE_COUNT = 3; 
+        private static int CACHE_COUNT = 5; 
         private static float X_OFFSET = -1.0f; 
-        // private static float SCALE_FACTOR = 2.0f;
         public static double HOMOGRAPHY_WIDTH = 640.0;
         public static double HOMOGRAPHY_HEIGHT = 360.0;
         public static int RECT_SIZE = 400; 
         public static int SCALE_FACTOR = 3; 
 
-        // Mats
+        // Mats & Mat Arrays
         public Mat outMat = new Mat(360, 640, CvType.CV_8UC1);
         private Mat cached_bigMat = new Mat (1080, 1920, CvType.CV_8UC1);
-        // private Mat cached_initMat = new Mat (360, 640, CvType.CV_8UC1);
         private Mat cached_initMat = null; 
         private Mat warpedMat = new Mat (360, 640, CvType.CV_8UC1);
         private Mat ids = new Mat(360, 640, CvType.CV_8UC1);
+        
         private List<Mat> corners = new List<Mat>();
-
-        private Mat[] rectMat_array = new Mat[3];
-        private Mat[] homoMat_array = new Mat[3];
-
-        private Matrix4x4 camera_pose; 
+        private Mat[,] rectMat_array = new Mat[FACE_COUNT, CACHE_COUNT];
+        private Mat[] homoMat_array = new Mat[FACE_COUNT];
 
         // Face corner indices for each face
         private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
@@ -104,9 +118,11 @@ namespace MagicLeap
         private Vector3[] src_world_array = new Vector3[POINT_COUNT];
         private Point[] c1_point_array = new Point[POINT_COUNT];
         private Point[] hand_point_array = new Point[POINT_COUNT];
+        private Vector3[] camerapos_array = new Vector3[CACHE_COUNT]; 
 
-        // Index
+        // Indices
         private int world_idx; 
+        private int cap_i = 0; 
 
         // Face Lists
         private bool[] faceX_full = new bool[3];
@@ -116,6 +132,8 @@ namespace MagicLeap
         private Texture2D out_texture;
 
         private GameObject _previewObject = null; 
+
+        private Matrix4x4 camera_pose; 
         #endregion
 
         #region Helper Functions
@@ -206,6 +224,35 @@ namespace MagicLeap
             Debug.LogFormat("Mat Max and Min: {0}, {1} \n Alpha & Beta: {2}, {3} \n I(200, 200) -> O(200, 200): {4} vs. {5} vs. {6}", 
                 res.maxVal, res.minVal, alpha, beta, I.get(200, 200)[0], (alpha * I.get(200, 200)[0]) + beta, O.get(200,200)[0] );
             I = O; 
+        }
+
+        // Caches the camera's world points when textures are captured. 
+        public void CacheCamPoints()
+        {
+            camerapos_array[cap_i] = (Camera.main.transform.position);
+            cap_i++;
+        }
+
+        public int GetClosestIndex() {
+            Vector3 curr_cam; 
+            if (HAND_DISPLAY) {
+                curr_cam = ControllerTransform.position; 
+            }
+            else {
+                curr_cam = Camera.main.transform.position;
+            }
+
+            int min_i = 0; 
+            float min_dist = Vector3.Distance(curr_cam, camerapos_array[0]);
+            for (int i = 0; i < cap_i; i++) {
+                Vector3 camera_pos = camerapos_array[i];
+                float dist = Vector3.Distance(curr_cam, camera_pos); 
+                if (dist < min_dist) {
+                    min_dist = dist; 
+                    min_i = i; 
+                }
+            }
+            return min_i; 
         }
         #endregion
 
@@ -355,7 +402,7 @@ namespace MagicLeap
         ///  |         |
         /// [2] ----- [3]
         void Rectify(ref Point[] face_point_array, int i) {
-            rectMat_array[i] = new Mat (360, 640, CvType.CV_8UC1);
+            rectMat_array[i, cap_i] = new Mat (360, 640, CvType.CV_8UC1);
             
             Point[] reg_point_array = new Point[4];
             reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
@@ -372,7 +419,10 @@ namespace MagicLeap
             // Creating the H Matrix
             Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-            Imgproc.warpPerspective(cached_initMat, rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+            Debug.LogFormat("Setting rectMat_array[{0}, {1}]", i, cap_i);
+
+            Imgproc.warpPerspective(cached_initMat, rectMat_array[i, cap_i], 
+                Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
         }
 
         /// Rectifies and stores FACE_COUNT faces of object defined by [source_points] and stores into 
@@ -397,17 +447,17 @@ namespace MagicLeap
         void ShowFaces() {
             if (faceX_full[0]) {
                 Texture2D topTexture1 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[0], topTexture1, false, 0);
+                Utils.matToTexture2D(rectMat_array[0, cap_i], topTexture1, false, 0);
                 m_TopImage1.texture = (Texture) topTexture1;
             }
             if (faceX_full[1]) {
                 Texture2D topTexture2 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[1], topTexture2, false, 0);
+                Utils.matToTexture2D(rectMat_array[1, cap_i], topTexture2, false, 0);
                 m_TopImage2.texture = (Texture) topTexture2;
             }
             if (faceX_full[2]) {
                 Texture2D topTexture3 = new Texture2D(640, 360, TextureFormat.RGBA32, false);
-                Utils.matToTexture2D(rectMat_array[2], topTexture3, false, 0);
+                Utils.matToTexture2D(rectMat_array[2, cap_i], topTexture3, false, 0);
                 m_TopImage3.texture = (Texture) topTexture3;
             }
         }
@@ -416,12 +466,12 @@ namespace MagicLeap
         void CombineWarped() {
             warpedMat = homoMat_array[0] + homoMat_array[1];
             warpedMat = homoMat_array[2] + warpedMat; 
-            // Core.flip(warpedMat, warpedMat, 0);e
+            // Core.flip(warpedMat, warpedMat, 0);
         }
 
-        /// Takes Rectified face [i] of rectMat_array, and warps them into images specified by 
+        /// Takes Rectified face [i] and capture index [c] of rectMat_array, and warps them into images specified by 
         /// [proj_point_array[i]]. 
-        void HomographyTransform(int i, ref Point[] proj_point_array) {
+        void HomographyTransform(int i, int c, ref Point[] proj_point_array) {
             // Init homography result Mat
             homoMat_array[i] = new Mat (360, 640, CvType.CV_8UC1);
 
@@ -444,7 +494,10 @@ namespace MagicLeap
 
             Mat Homo_Mat = Calib3d.findHomography(regPoints, outPoints);
 
-            Imgproc.warpPerspective(rectMat_array[i], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+            Debug.LogFormat("Accessing rectMat_array[{0}, {1}]", i, c);
+
+            Imgproc.warpPerspective(rectMat_array[i, c], homoMat_array[i], 
+                Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
         }
         #endregion
 
@@ -487,8 +540,11 @@ namespace MagicLeap
 
             // STAGE III
             for (int i = 0; i < FACE_COUNT; i++) {
-                if (faceX_full[i])
-                    HomographyTransform(i, ref hand_point_array);
+                if (faceX_full[i]) {
+                    int closest_capture = GetClosestIndex();
+                    // int closest_capture = 0; 
+                    HomographyTransform(i, closest_capture, ref hand_point_array);
+                }
             }
             CombineWarped();
 
@@ -525,6 +581,8 @@ namespace MagicLeap
 
             // Faces Extracted (and displayed)
             GetFaces(ref c1_point_array);
+
+            CacheCamPoints(); 
 
             // outMat = cached_initMat;
             // ShowMat(ref outMat);
