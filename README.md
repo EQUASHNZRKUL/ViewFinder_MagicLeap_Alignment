@@ -18,9 +18,8 @@ in a 2019.2 build of Unity, and then built onto a Magic Leap Headset with Lumin 
 The Magic Leap One build of Unity currently does not have automatic corner detection, so corners of the object must be placed manually via Raycast. A green circle cursor should appear as a guide to where the raycast is landing, and pressing the home button will spawn a purple world-marker. The world-markers must be placed in a specific order: 
 ```
    0-------1
-  /|      /|
  / |     / |
-3--|----6  |
+3--+----6  |
 |  .----|--2
 | /     | /
 4-------5
