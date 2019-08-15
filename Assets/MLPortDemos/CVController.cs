@@ -234,13 +234,7 @@ namespace MagicLeap
         }
 
         public int GetClosestIndex() {
-            Vector3 curr_cam; 
-            if (HAND_DISPLAY) {
-                curr_cam = ControllerTransform.position; 
-            }
-            else {
-                curr_cam = Camera.main.transform.position;
-            }
+            Vector3 curr_cam = ControllerTransform.position; 
 
             int min_i = 0; 
             float min_dist = Vector3.Distance(curr_cam, camerapos_array[0]);
