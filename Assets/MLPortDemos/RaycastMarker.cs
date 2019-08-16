@@ -53,7 +53,7 @@ namespace MagicLeap
         private Camera _camera; 
 
         // Index of current marker
-        private int idx; 
+        private int idx = 0; 
 
         private static int POINT_COUNT = 7; 
 

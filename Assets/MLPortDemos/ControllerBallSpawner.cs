@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.XR.MagicLeap;
 using Unity.Collections;
 
@@ -8,6 +9,7 @@ namespace MagicLeap
     public class ControllerBallSpawner : MonoBehaviour
     {
         #region Private Variables
+
         [SerializeField]
         [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
         GameObject m_PlacedPrefab;
@@ -37,8 +39,21 @@ namespace MagicLeap
         [Space, SerializeField, Tooltip("ControllerConnectionHandler reference.")]
         private ControllerConnectionHandler _controllerConnectionHandler = null;
 
+        [Tooltip("Reference to the controller object's transform.")]
+        public Transform ControllerTransform;
+
+        [System.Serializable]
+        // private class RaycastTriggerEvent : UnityEvent<Vector3, int>
+        private class ButtonTriggerEvent : UnityEvent<Vector3>
+        {}
+
+        [SerializeField, Space]
+        private ButtonTriggerEvent OnWorldpointFound = null;
+
+        private static int POINT_COUNT = 7; 
+
         public GameObject cursorObject { get; private set; }
-        private GameObject[] spawnedObjects = new GameObject[7];
+        private GameObject[] spawnedObjects = new GameObject[POINT_COUNT];
 
         // current index of spawnedObjects ready to spawn
         private int idx = 0; 
@@ -77,16 +92,20 @@ namespace MagicLeap
         private void UpdateMarker()
         {
             MLInputController controller = _controllerConnectionHandler.ConnectedController;
-            cursorObject.transform.position = controller.Position;
-            cursorObject.transform.rotation = controller.Orientation;
+            // cursorObject.transform.position = controller.Position + controller.;
+            // cursorObject.transform.rotation = controller.Orientation;
+            cursorObject.transform.position = ControllerTransform.position + (ControllerTransform.up * 0.25f); 
+            cursorObject.transform.rotation = ControllerTransform.rotation;
         }
 
         // Handles the Press Event
         private void BumperPress()
         {
             spawnedObjects[idx] = Instantiate(m_PlacedPrefab, cursorObject.transform.position, cursorObject.transform.rotation);
-            idx++; 
+            // idx++; 
             m_InstructionText.text = string.Format("Placing Marker {0}", idx);
+
+            OnWorldpointFound.Invoke(cursorObject.transform.position);
         }
         #endregion
 
@@ -94,7 +113,11 @@ namespace MagicLeap
         private void OnButtonDown(byte controllerId, MLInputControllerButton button)
         {
             if (_controllerConnectionHandler.IsControllerValid(controllerId) && button == MLInputControllerButton.HomeTap)
-                BumperPress(); 
+            {
+                if (idx < POINT_COUNT)
+                    BumperPress(); 
+                idx++;
+            }
         }
 
         private void OnHeadTrackingMapEvent(MLHeadTrackingMapEvent mapEvents)
